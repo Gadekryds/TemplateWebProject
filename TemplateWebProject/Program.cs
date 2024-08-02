@@ -1,66 +1,26 @@
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using TemplateWebProject;
+using TemplateWebProject.Dependency;
+using TemplateWebProject.RequestPipeline;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-
-
-Uri otelAgent = new(builder.Configuration.GetValue<string>("OTEL_AGENT")!);
-string serviceName = builder.Configuration.GetValue<string>("OTEL_SERVICE_NAME")!;
-
-
-builder.Logging.AddOpenTelemetry();
-
-builder.Services.AddOpenTelemetry()
-                .ConfigureResource(resource => 
-                    resource.AddService(serviceName)
-                            .AddAttributes([new("app_name", serviceName)]))
-                .WithLogging(logs =>
-                {
-                    logs.AddOtlpExporter(opt =>
-                    {
-                        opt.Endpoint = otelAgent;
-                    });
-                })
-                
-                .WithMetrics(metrics =>
-                {
-                    metrics.AddMeter(
-                        "Microsoft.AspNetCore.Hosting", 
-                        "Microsoft.AspNetCore.Server.Kestrel",
-                        "System.Net.Http",
-                        DiagnosticsConfig.Meter.Name);
-                    
-                    metrics.AddHttpClientInstrumentation();
-                    metrics.AddAspNetCoreInstrumentation();
-                    metrics.AddOtlpExporter(opt =>
-                    {
-                        opt.Endpoint = otelAgent;
-                    });
-                })
-                .WithTracing(traces =>
-                {
-                    traces.AddHttpClientInstrumentation();
-                    traces.AddOtlpExporter(opt =>
-                    {
-                        opt.Endpoint = otelAgent;
-                    });
-
-                });
+builder.AddMonitoring();
+builder.AddExceptionHandling();
 
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.UseGlobalErrorHandling();
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/throw", () =>
+{
+    throw new Exception("test");
+});
 
 app.Run();
