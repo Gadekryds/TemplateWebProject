@@ -4,7 +4,7 @@ using TemplateWebProject.Errors;
 
 namespace TemplateWebProject.RequestPipeline;
 
-public static class WebApplicationExtensions
+public static partial class WebApplicationExtensions
 {
     private const string _errorExceptionRoute = "/error";
     public static WebApplicationBuilder AddExceptionHandling(this WebApplicationBuilder builder)

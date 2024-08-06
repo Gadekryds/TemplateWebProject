@@ -1,4 +1,3 @@
-using TemplateWebProject.Dependency;
 using TemplateWebProject.RequestPipeline;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +10,9 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 app.UseGlobalErrorHandling();
+
+
+
 
 app.UseHttpsRedirection();
 
